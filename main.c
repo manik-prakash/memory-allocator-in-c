@@ -56,6 +56,14 @@ void *mem_alloc(arena *a, size_t x, size_t *total_padding)
     return allocated_start;
 }
 
+int arena_reset(arena *a){
+    if(a == NULL){
+        return 0;
+    }
+    a->offset = 0;
+    return 1;
+}
+
 int main()
 {
     size_t arena_size;
