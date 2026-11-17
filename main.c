@@ -27,15 +27,16 @@ int arena_init(size_t arena_size, arena *a, unsigned char *arena_memory)
 
 void *mem_alloc(arena *a, size_t x, size_t *total_padding)
 {
-    if (x == 0 || a == NULL)
+    if (x == 0 || a == NULL || total_padding == NULL)
     {
         printf("invalid request \n");
         return NULL;
     }
-    if(a->offset <= SIZE_MAX - (alignment - 1) && a->offset <= a->size){
-
-        size_t aligned_offset = (a->offset + (alignment - 1)) & ~(alignment - 1);
-    
+    size_t aligned_offset = 0;
+    if (a->offset <= SIZE_MAX - (alignment - 1) && a->offset <= a->size)
+    {
+        aligned_offset = (a->offset + (alignment - 1)) & ~(alignment - 1);
+        return NULL;
     }
     size_t padding = aligned_offset - a->offset;
 
@@ -101,11 +102,18 @@ int main()
     printf("num : %p \n", num);
     printf("buffer : %p \n", buffer);
     printf("total padding : %zu \n", total_padding);
-
+    printf("------------\n");
     arena_reset(&a, &total_padding);
 
     printf("arena offset after reset: %zu \n", a.offset);
     printf("total padding after reset: %zu \n", total_padding);
+    printf("------------\n");
+    int *num1 = mem_alloc(&a, 6 * sizeof(int), &total_padding);
+    char *buffer1 = mem_alloc(&a, 400, &total_padding);
+
+    printf("num : %p \n", num1);
+    printf("buffer : %p \n", buffer1);
+    printf("total padding : %zu \n", total_padding);
 
     return 0;
 }
