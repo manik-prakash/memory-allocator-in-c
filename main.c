@@ -3,6 +3,7 @@
 #include <stdalign.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 typedef struct
 {
     unsigned char *base;
@@ -14,7 +15,8 @@ const size_t alignment = alignof(max_align_t);
 
 int arena_init(size_t arena_size, arena *a)
 {
-    if(a == NULL){
+    if (a == NULL)
+    {
         return 0;
     }
     a->base = NULL;
@@ -103,6 +105,30 @@ int arena_destroy(arena *a)
     return 1;
 }
 
+void *mem_calloc(arena *a, size_t size,size_t count, size_t *total_padding){
+    if(count == 0 || size ==0){
+        return NULL;
+    }
+    if(count != 0 && count > SIZE_MAX / size){
+        return NULL;
+    }
+    size_t total_size = size * count;
+
+    void *ptr = mem_alloc(a,total_size,total_padding);
+
+    if(ptr == NULL){
+        return ptr;
+    }
+
+    memset(ptr,0,total_size);
+
+    return ptr;
+}
+
+void *mem_strduplicate(){
+    
+}
+
 int main()
 {
     size_t arena_size;
@@ -119,31 +145,15 @@ int main()
     {
         return 1;
     }
-
     printf("arena size : %zu \n", a.size);
     printf("arena offset : %zu \n", a.offset);
-
     size_t total_padding = 0;
 
-    int *num = mem_alloc(&a, 4 * sizeof(int), &total_padding);
-    char *buffer = mem_alloc(&a, 100, &total_padding);
+    int *numbers = mem_calloc(&a, sizeof(int),5, &total_padding);
 
-    printf("num : %p \n", num);
-    printf("buffer : %p \n", buffer);
-    printf("total padding : %zu \n", total_padding);
-    printf("------------\n");
-    arena_reset(&a, &total_padding);
-
-    printf("arena offset after reset: %zu \n", a.offset);
-    printf("total padding after reset: %zu \n", total_padding);
-    printf("------------\n");
-    int *num1 = mem_alloc(&a, 6 * sizeof(int), &total_padding);
-    char *buffer1 = mem_alloc(&a, 400, &total_padding);
-
-    printf("num : %p \n", num1);
-    printf("buffer : %p \n", buffer1);
-    printf("total padding : %zu \n", total_padding);
-
+    for(int i= 0 ; i < 5;i++){
+        printf("%d ", numbers[i]);
+    }
     arena_destroy(&a);
 
     return 0;
