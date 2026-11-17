@@ -10,14 +10,12 @@ typedef struct
     size_t offset;
 } arena;
 
-
 const size_t alignment = alignof(max_align_t);
 
-int arena_init(size_t arena_size, arena *a,unsigned char * arena_memory){
-    if(arena_size == 0){
-        return 0;
-    }
-    if(arena_memory == NULL){
+int arena_init(size_t arena_size, arena *a, unsigned char *arena_memory)
+{
+    if (arena_size == 0 || arena_memory == NULL || a == NULL)
+    {
         return 0;
     }
     a->base = arena_memory;
@@ -29,14 +27,18 @@ int arena_init(size_t arena_size, arena *a,unsigned char * arena_memory){
 
 void *mem_alloc(arena *a, size_t x, size_t *total_padding)
 {
-    if (x == 0)
+    if (x == 0 || a == NULL)
     {
-        printf("invalid memory request \n");
+        printf("invalid request \n");
         return NULL;
     }
-    size_t aligned_offset = (a->offset + (alignment - 1)) & ~(alignment - 1);
-    size_t padding = aligned_offset - a->offset;
+    if(a->offset <= SIZE_MAX - (alignment - 1) && a->offset <= a->size){
+
+        size_t aligned_offset = (a->offset + (alignment - 1)) & ~(alignment - 1);
     
+    }
+    size_t padding = aligned_offset - a->offset;
+
     if (aligned_offset > a->size || x > a->size - aligned_offset)
     {
         printf("not possible\n");
@@ -56,11 +58,17 @@ void *mem_alloc(arena *a, size_t x, size_t *total_padding)
     return allocated_start;
 }
 
-int arena_reset(arena *a){
-    if(a == NULL){
+int arena_reset(arena *a, size_t *total_padding)
+{
+    if (a == NULL)
+    {
         return 0;
     }
     a->offset = 0;
+    if (total_padding != NULL)
+    {
+        *total_padding = 0;
+    }
     return 1;
 }
 
@@ -68,20 +76,22 @@ int main()
 {
     size_t arena_size;
     printf("define the arena size : ");
-    if(scanf("%zu",&arena_size) != 1){  
+    if (scanf("%zu", &arena_size) != 1)
+    {
         printf("invalid input\n");
         return 1;
     }
     alignas(max_align_t) unsigned char arena_memory[arena_size];
 
     arena a;
-    int res = arena_init(arena_size,&a,arena_memory);
-    if(res == 0){
+    int res = arena_init(arena_size, &a, arena_memory);
+    if (res == 0)
+    {
         return 1;
     }
 
-    printf("arena size : %zu \n", a->size);
-    printf("arena offset : %zu \n", a->offset);
+    printf("arena size : %zu \n", a.size);
+    printf("arena offset : %zu \n", a.offset);
 
     size_t total_padding = 0;
 
@@ -90,7 +100,12 @@ int main()
 
     printf("num : %p \n", num);
     printf("buffer : %p \n", buffer);
-    printf("total padding : %zu \n",total_padding);
+    printf("total padding : %zu \n", total_padding);
+
+    arena_reset(&a, &total_padding);
+
+    printf("arena offset after reset: %zu \n", a.offset);
+    printf("total padding after reset: %zu \n", total_padding);
 
     return 0;
 }
