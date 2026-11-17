@@ -147,6 +147,29 @@ void *mem_strduplicate(arena *a, size_t *total_padding, const char *str)
     return ptr;
 }
 
+int arena_contains(arena *a, void *ptr)
+{
+    if (ptr == NULL || a == NULL)
+    {
+        return 0;
+    }
+    if (a->base == NULL || a->offset == 0 || ptr == a->base + a->offset || a->offset > a->size)
+    {
+        return 0;
+    }
+
+    uintptr_t start = (uintptr_t)a->base;
+    uintptr_t end = (uintptr_t)a->base + (uintptr_t)a->offset;
+    uintptr_t address = (uintptr_t)ptr;
+
+    if (address >= start && address < end)
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
 int main()
 {
     size_t arena_size;
