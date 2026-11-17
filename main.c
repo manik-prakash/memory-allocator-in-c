@@ -105,28 +105,46 @@ int arena_destroy(arena *a)
     return 1;
 }
 
-void *mem_calloc(arena *a, size_t size,size_t count, size_t *total_padding){
-    if(count == 0 || size ==0){
+void *mem_calloc(arena *a, size_t size, size_t count, size_t *total_padding)
+{
+    if (count == 0 || size == 0)
+    {
         return NULL;
     }
-    if(count != 0 && count > SIZE_MAX / size){
+    if (count != 0 && count > SIZE_MAX / size)
+    {
         return NULL;
     }
     size_t total_size = size * count;
 
-    void *ptr = mem_alloc(a,total_size,total_padding);
+    void *ptr = mem_alloc(a, total_size, total_padding);
 
-    if(ptr == NULL){
+    if (ptr == NULL)
+    {
         return ptr;
     }
 
-    memset(ptr,0,total_size);
+    memset(ptr, 0, total_size);
 
     return ptr;
 }
 
-void *mem_strduplicate(){
-    
+void *mem_strduplicate(arena *a, size_t *total_padding, const char *str)
+{
+    if (str == NULL)
+    {
+        return NULL;
+    }
+    size_t s = strlen(str);
+
+    void *ptr = mem_alloc(a, (s + 1), total_padding);
+    if (ptr == NULL)
+    {
+        return ptr;
+    }
+    memcpy(ptr, str, s + 1);
+
+    return ptr;
 }
 
 int main()
@@ -149,11 +167,25 @@ int main()
     printf("arena offset : %zu \n", a.offset);
     size_t total_padding = 0;
 
-    int *numbers = mem_calloc(&a, sizeof(int),5, &total_padding);
+    char *str1 = mem_strduplicate(&a, &total_padding, "Hello World");
 
-    for(int i= 0 ; i < 5;i++){
-        printf("%d ", numbers[i]);
-    }
+    char *str2 = mem_strduplicate(&a, &total_padding, "CUDA Programming");
+
+    char *str3 = mem_strduplicate(&a, &total_padding, "");
+
+    printf("str1: %s\n", str1);
+    printf("str2: %s\n", str2);
+    printf("str3: %s\n", str3);
+
+    char original[] = "Memory Allocator";
+
+    char *copy = mem_strduplicate(&a, &total_padding, original);
+
+    original[0] = 'X';
+
+    printf("Original: %s\n", original);
+    printf("Copy: %s\n", copy);
+
     arena_destroy(&a);
 
     return 0;
