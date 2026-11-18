@@ -218,6 +218,38 @@ int arena_contains(arena *a, void *ptr)
     return 0;
 }
 
+int arena_savepoint(arena *a,size_t *savepoint){
+    if(a == NULL){
+        return 0;
+    }
+    if(a->base == NULL || a->size == 0){
+        return 0;
+    }
+    if(savepoint == NULL || a->offset > a->size){
+        return 0;
+    }
+    *savepoint = a->offset;
+    return 1;
+}
+
+int arena_rollback(arena *a,size_t savepoint){
+    if(a == NULL){
+        return 0;
+    }
+    if(a->base == NULL || a->size == 0){
+        return 0;
+    }
+    if(savepoint == NULL || a->offset > a->size){
+        return 0;
+    }
+    if(savepoint > a->size || savepoint > a->offset){
+        return 0;
+    }
+
+    a->offset = savepoint;
+    return 1;
+}
+
 int main()
 {
     size_t arena_size;
