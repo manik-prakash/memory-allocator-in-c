@@ -41,6 +41,54 @@ int arena_init(size_t arena_size, arena *a)
     return 1;
 }
 
+void *mem_alloc_aligned(arena *a, size_t x,size_t align, size_t *total_padding){
+    if(a == NULL || x == 0 || total_padding == NULL || align == 0){
+        printf("invalid request \n");
+        return NULL;
+    }
+    
+    if(a->base == NULL || a->size == 0){ 
+        printf("invalid request \n");
+        return NULL;
+    }
+
+    if ((align & (align - 1)) != 0)
+    {
+        printf("invalid request \n");
+        return NULL;
+    }
+
+    if(a->offset > a->size){
+        printf("invalid request \n");
+        return NULL;
+    }
+
+    uintptr_t curr_add = (uintptr_t)(a->base + a->offset);
+    uintptr_t remainder = curr_add % align;
+    size_t padding = 0;
+
+    if(remainder != 0){
+        padding = align - remainder;
+    }
+
+    if(padding > a->size - a->offset){
+        return NULL;
+    }
+
+    size_t aligned_offset = a->offset + padding;
+    if(x > a->size - aligned_offset){
+        return NULL;
+    }
+
+    *total_padding += padding;
+    
+    unsigned char *allocated_start = a->base + aligned_offset;
+    unsigned char *allocated_end = allocated_start + x;
+    a->offset = a->offset + padding + x;
+
+    return allocated_start;
+}
+
 void *mem_alloc(arena *a, size_t x, size_t *total_padding)
 {
     if (x == 0 || a == NULL || total_padding == NULL || a->base == NULL)
