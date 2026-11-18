@@ -239,7 +239,7 @@ int arena_rollback(arena *a,size_t savepoint){
     if(a->base == NULL || a->size == 0){
         return 0;
     }
-    if(savepoint == NULL || a->offset > a->size){
+    if(a->offset > a->size){
         return 0;
     }
     if(savepoint > a->size || savepoint > a->offset){
